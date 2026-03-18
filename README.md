@@ -41,29 +41,7 @@ No cloud subscriptions. No upload limits. No third-party access to your memories
 
 ## Screenshots
 
-### Login
-![Login](screenshots/login.png)
-
-### Folder Browse
-![Browse](screenshots/browse.png)
-
-### Image Viewer
-![Viewer](screenshots/viewer.png)
-
-### Video Player
-![Player](screenshots/player.png)
-
-### Search
-![Search](screenshots/search.png)
-
-### Admin Panel — Users
-![Admin Users](screenshots/admin-users.png)
-
-### Admin Panel — Permissions
-![Admin Permissions](screenshots/admin-permissions.png)
-
-### Mobile View
-![Mobile](screenshots/mobile.png)
+> Screenshots coming soon. See the `screenshots/` folder after setup.
 
 ## Prerequisites
 
