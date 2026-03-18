@@ -1,0 +1,24 @@
+{
+  "name": "homestream",
+  "version": "1.0.0",
+  "description": "Self-hosted LAN media server — drop folders, browse photos, stream videos. Multi-user with role-based permissions.",
+  "keywords": ["media-server", "lan", "self-hosted", "photo-gallery", "video-streaming", "home-media", "nas", "media-browser"],
+  "main": "server.js",
+  "scripts": {
+    "setup": "node setup.js",
+    "start": "node server.js",
+    "dev": "node server.js 2>&1"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "chokidar": "^3.6.0",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "helmet": "^7.2.0",
+    "jsonwebtoken": "^9.0.2",
+    "mime-types": "^2.1.35",
+    "multer": "^1.4.5-lts.1",
+    "pg": "^8.13.1",
+    "sharp": "^0.33.5"
+  }
+}

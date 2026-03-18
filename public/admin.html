@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Media Server - Admin</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="browse-page">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <h2>Media Server</h2>
+      <button class="sidebar-toggle-close" id="sidebarClose">&times;</button>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="/browse" class="nav-item">
+        <span class="nav-icon">&#128193;</span> Browse
+      </a>
+      <a href="#" class="nav-item active" data-tab="users" id="navUsers">
+        <span class="nav-icon">&#128101;</span> Users
+      </a>
+      <a href="#" class="nav-item" data-tab="trash" id="navTrash">
+        <span class="nav-icon">&#128465;</span> Trash
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <span id="currentUser"></span>
+        <span class="user-role" id="currentRole"></span>
+      </div>
+      <button class="btn btn-sm" id="logoutBtn">Logout</button>
+    </div>
+  </aside>
+
+  <main class="main-content" id="mainContent">
+    <header class="top-bar">
+      <button class="sidebar-toggle" id="sidebarOpen">&#9776;</button>
+      <h2 style="font-size:18px" id="pageTitle">User Management</h2>
+    </header>
+
+    <!-- Users Tab -->
+    <div class="admin-container" id="usersTab">
+      <div class="admin-section">
+        <div class="admin-section-header">
+          <h3>Users</h3>
+          <button class="btn btn-primary btn-sm" id="showCreateForm">+ New User</button>
+        </div>
+
+        <!-- User Cards Grid -->
+        <div class="user-cards" id="userCards"></div>
+      </div>
+    </div>
+
+    <!-- Trash Tab -->
+    <div class="admin-container" id="trashTab" style="display:none">
+      <div class="admin-section">
+        <div class="admin-section-header">
+          <h3>Trash</h3>
+          <span class="text-muted" id="trashInfo"></span>
+        </div>
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>File</th>
+              <th>Size</th>
+              <th>Deleted By</th>
+              <th>Deleted At</th>
+              <th>Purge After</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="trashTableBody"></tbody>
+        </table>
+        <div class="empty-state" id="trashEmpty" style="display:none">
+          <div class="empty-icon">&#128465;</div>
+          <p>Trash is empty</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Create/Edit User Modal -->
+  <div class="modal" id="userModal" style="display:none">
+    <div class="modal-content modal-sm">
+      <div class="modal-header">
+        <h3 id="modalTitle">New User</h3>
+        <button class="modal-close" id="modalClose">&times;</button>
+      </div>
+      <form id="userForm">
+        <div class="form-group">
+          <label>Username</label>
+          <input type="text" id="formUsername" placeholder="Enter username" required>
+        </div>
+        <div class="form-group">
+          <label id="passwordLabel">Password</label>
+          <input type="password" id="formPassword" placeholder="Enter password">
+        </div>
+        <div class="form-group">
+          <label>Role</label>
+          <div class="role-selector">
+            <label class="role-option">
+              <input type="radio" name="role" value="viewer" checked>
+              <div class="role-card">
+                <span class="role-card-icon">&#128065;</span>
+                <span class="role-card-title">Viewer</span>
+                <span class="role-card-desc">View files only</span>
+              </div>
+            </label>
+            <label class="role-option">
+              <input type="radio" name="role" value="uploader">
+              <div class="role-card">
+                <span class="role-card-icon">&#8679;</span>
+                <span class="role-card-title">Uploader</span>
+                <span class="role-card-desc">View + upload files</span>
+              </div>
+            </label>
+            <label class="role-option">
+              <input type="radio" name="role" value="admin">
+              <div class="role-card">
+                <span class="role-card-icon">&#9881;</span>
+                <span class="role-card-title">Admin</span>
+                <span class="role-card-desc">Full access</span>
+              </div>
+            </label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn" id="modalCancel">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="formSubmit">Create User</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Permissions Modal -->
+  <div class="modal" id="permModal" style="display:none">
+    <div class="modal-content modal-sm">
+      <div class="modal-header">
+        <h3>Folder Permissions: <span id="permUserName"></span></h3>
+        <button class="modal-close" id="permClose">&times;</button>
+      </div>
+      <div class="perm-body">
+        <p class="text-muted" style="font-size:13px;margin-bottom:12px">
+          Select folders this user can access. Admin users always have access to everything.
+        </p>
+        <div class="permissions-tree" id="permissionsTree"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" id="permCancel">Cancel</button>
+        <button class="btn btn-primary" id="permSave">Save Permissions</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm Modal -->
+  <div class="modal" id="confirmModal" style="display:none">
+    <div class="modal-content modal-xs">
+      <div class="modal-header">
+        <h3 id="confirmTitle">Confirm</h3>
+        <button class="modal-close" id="confirmClose">&times;</button>
+      </div>
+      <p id="confirmMessage" style="padding:0 24px;font-size:14px;color:var(--text-muted)"></p>
+      <div class="modal-footer">
+        <button class="btn" id="confirmNo">Cancel</button>
+        <button class="btn btn-danger" id="confirmYes">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/admin.js"></script>
+</body>
+</html>

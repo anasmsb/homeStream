@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Media Server</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="browse-page">
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <h2>Media Server</h2>
+      <button class="sidebar-toggle-close" id="sidebarClose">&times;</button>
+    </div>
+    <div class="sidebar-search">
+      <input type="text" id="searchInput" placeholder="Search files...">
+    </div>
+    <nav class="sidebar-nav">
+      <a href="#" class="nav-item active" data-view="folders" id="navFolders">
+        <span class="nav-icon">&#128193;</span> Folders
+      </a>
+      <a href="#" class="nav-item" data-view="all" id="navAll">
+        <span class="nav-icon">&#128444;</span> All Files
+      </a>
+      <a href="#" class="nav-item" data-view="favorites" id="navFavorites">
+        <span class="nav-icon">&#9829;</span> Favorites
+      </a>
+      <a href="#" class="nav-item admin-only" data-view="admin" id="navAdmin" style="display:none">
+        <span class="nav-icon">&#9881;</span> Admin
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <span id="currentUser"></span>
+        <span class="user-role" id="currentRole"></span>
+      </div>
+      <button class="btn btn-sm" id="logoutBtn">Logout</button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content" id="mainContent">
+    <header class="top-bar">
+      <button class="sidebar-toggle" id="sidebarOpen">&#9776;</button>
+      <div class="breadcrumbs" id="breadcrumbs"></div>
+      <div class="top-actions">
+        <div class="pagination-size" id="paginationSize">
+          <select id="pageSizeSelect">
+            <option value="50">50</option>
+            <option value="100">100</option>
+            <option value="0">All</option>
+          </select>
+        </div>
+        <button class="btn btn-sm btn-upload" id="uploadBtn" title="Upload files">&#8679; Upload</button>
+      </div>
+    </header>
+
+    <!-- Content Grid -->
+    <div class="content-grid" id="contentGrid"></div>
+
+    <!-- Pagination -->
+    <div class="pagination" id="pagination" style="display:none"></div>
+
+    <!-- Search Results -->
+    <div class="search-results" id="searchResults" style="display:none">
+      <h3>Search Results</h3>
+      <div class="content-grid" id="searchGrid"></div>
+      <div class="pagination" id="searchPagination"></div>
+    </div>
+
+    <!-- Loading -->
+    <div class="loading" id="loading" style="display:none">
+      <div class="spinner"></div>
+    </div>
+  </main>
+
+  <!-- Upload Modal -->
+  <div class="modal" id="uploadModal" style="display:none">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Upload Files</h3>
+        <button class="modal-close" id="uploadModalClose">&times;</button>
+      </div>
+      <div class="upload-zone" id="uploadZone">
+        <p>Drag & drop files here or click to browse</p>
+        <input type="file" id="fileInput" multiple style="display:none">
+        <input type="file" id="folderInput" webkitdirectory style="display:none">
+        <div class="upload-buttons">
+          <button class="btn btn-sm" id="selectFiles">Select Files</button>
+          <button class="btn btn-sm" id="selectFolder">Select Folder</button>
+        </div>
+      </div>
+      <div class="upload-progress" id="uploadProgress" style="display:none">
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+        <p id="uploadStatus"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Image Viewer Overlay -->
+  <div class="viewer-overlay" id="viewerOverlay" style="display:none">
+    <div class="viewer-toolbar">
+      <span class="viewer-counter" id="viewerCounter"></span>
+      <button class="viewer-btn" id="viewerFav" title="Favorite">&#9825;</button>
+      <button class="viewer-btn" id="viewerInfo" title="Info">&#9432;</button>
+      <button class="viewer-btn viewer-delete admin-only-btn" id="viewerDelete" title="Delete" style="display:none;color:var(--danger)">&#128465;</button>
+      <button class="viewer-btn viewer-close" id="viewerClose">&times;</button>
+    </div>
+    <button class="viewer-nav viewer-prev" id="viewerPrev">&#10094;</button>
+    <button class="viewer-nav viewer-next" id="viewerNext">&#10095;</button>
+    <div class="viewer-image-container">
+      <img id="viewerImage" src="" alt="">
+    </div>
+  </div>
+
+  <!-- Video Player Overlay -->
+  <div class="player-overlay" id="playerOverlay" style="display:none">
+    <div class="player-toolbar">
+      <span class="player-filename" id="playerFilename"></span>
+      <span class="viewer-counter" id="playerCounter"></span>
+      <button class="player-btn" id="playerFav" title="Favorite">&#9825;</button>
+      <button class="player-btn" id="playerInfo" title="Info">&#9432;</button>
+      <button class="player-btn admin-only-btn" id="playerDelete" title="Delete" style="display:none;color:var(--danger)">&#128465;</button>
+      <button class="player-btn player-close" id="playerClose">&times;</button>
+    </div>
+    <button class="viewer-nav viewer-prev" id="playerPrev">&#10094;</button>
+    <button class="viewer-nav viewer-next" id="playerNext">&#10095;</button>
+    <div class="player-container">
+      <video id="videoPlayer" controls></video>
+      <div class="seek-indicator" id="seekIndicator" style="display:none"></div>
+    </div>
+  </div>
+
+  <!-- Info Panel -->
+  <div class="info-panel" id="infoPanel" style="display:none">
+    <div class="info-panel-content">
+      <h3>File Details</h3>
+      <div id="infoPanelBody"></div>
+      <button class="btn btn-sm" id="infoPanelClose">Close</button>
+      <button class="btn btn-sm btn-primary" id="infoGoToFolder" style="display:none">Go to Folder</button>
+    </div>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/browse.js"></script>
+  <script src="/js/viewer.js"></script>
+  <script src="/js/player.js"></script>
+  <script src="/js/search.js"></script>
+  <script src="/js/favorites.js"></script>
+  <script src="/js/upload.js"></script>
+  <script src="/js/pagination.js"></script>
+</body>
+</html>
