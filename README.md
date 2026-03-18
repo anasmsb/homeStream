@@ -195,15 +195,6 @@ If you still plan to make it publicly accessible, do so at your own risk.
     └── js/             # Frontend modules
 ```
 
-### Favorites
-![Favorites](screenshots/favorites.png)
-
-### Upload
-![Upload](screenshots/upload.png)
-
-### Trash Management
-![Trash](screenshots/trash.png)
-
 ## License
 
 MIT
