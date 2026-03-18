@@ -27,33 +27,47 @@ async function toggleFavorite(fileId, btnElement) {
   }
 }
 
-async function loadFavorites() {
-  showLoading(true);
+async function loadFavorites(append) {
+  if (!append) showLoading(true);
   await loadFavoritesCheck();
 
+  const isInfinite = pageSize === 0;
+  const effectiveLimit = isInfinite ? SCROLL_BATCH : pageSize;
+  const effectivePage = isInfinite ? infinitePage : currentPage;
+
   try {
-    const res = await apiFetch(`/api/favorites?page=${currentPage}&limit=${pageSize}`);
+    const res = await apiFetch(`/api/favorites?page=${effectivePage}&limit=${effectiveLimit}`);
     if (!res) return;
     const data = await res.json();
 
     renderBreadcrumbs([{ id: null, name: 'Favorites' }]);
 
     const grid = document.getElementById('contentGrid');
-    grid.innerHTML = '';
+    if (!append) grid.innerHTML = '';
 
-    currentFiles = data.files;
+    if (append) {
+      currentFiles = currentFiles.concat(data.files);
+    } else {
+      currentFiles = data.files;
+    }
     for (const file of data.files) {
-      const card = createFileCard(file, true);
-      grid.appendChild(card);
+      grid.appendChild(createFileCard(file, true));
     }
 
-    if (data.files.length === 0) {
+    if (!append && data.files.length === 0) {
       grid.innerHTML = '<div class="empty-state"><div class="empty-icon">&#9829;</div><p>No favorites yet</p></div>';
     }
 
-    renderPagination(data.pagination, 'pagination');
+    if (isInfinite) {
+      document.getElementById('pagination').style.display = 'none';
+      infiniteHasMore = effectivePage < data.pagination.totalPages;
+      infiniteLoading = false;
+    } else {
+      renderPagination(data.pagination, 'pagination');
+    }
   } catch (err) {
     console.error('Load favorites error:', err);
+    infiniteLoading = false;
   }
-  showLoading(false);
+  if (!append) showLoading(false);
 }

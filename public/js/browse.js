@@ -6,6 +6,12 @@ let favoriteIds = new Set();
 let currentPage = 1;
 let pageSize = parseInt(localStorage.getItem('pageSize') || '50');
 
+// Infinite scroll state
+const SCROLL_BATCH = 20;
+let infiniteLoading = false;
+let infiniteHasMore = false;
+let infinitePage = 1;
+
 // Init
 if (!checkAuth()) throw new Error('Not authenticated');
 
@@ -29,6 +35,8 @@ pageSizeSelect.addEventListener('change', () => {
   pageSize = parseInt(pageSizeSelect.value);
   localStorage.setItem('pageSize', pageSize.toString());
   currentPage = 1;
+  infinitePage = 1;
+  infiniteHasMore = false;
   loadCurrentView();
 });
 
@@ -59,6 +67,8 @@ document.getElementById('logoutBtn').addEventListener('click', logout);
 function setView(view) {
   currentView = view;
   currentPage = 1;
+  infinitePage = 1;
+  infiniteHasMore = false;
   currentFolderId = null;
   document.querySelectorAll('.nav-item').forEach((i) => i.classList.remove('active'));
   const navItem = document.querySelector(`.nav-item[data-view="${view}"]`);
@@ -87,13 +97,17 @@ async function loadFavoritesCheck() {
 }
 
 // Load folder
-async function loadFolder(folderId) {
-  showLoading(true);
+async function loadFolder(folderId, append) {
+  if (!append) showLoading(true);
   await loadFavoritesCheck();
 
+  const isInfinite = pageSize === 0;
+  const effectiveLimit = isInfinite ? SCROLL_BATCH : pageSize;
+  const effectivePage = isInfinite ? infinitePage : currentPage;
+
   const url = folderId
-    ? `/api/folders/${folderId}?page=${currentPage}&limit=${pageSize}`
-    : `/api/folders?page=${currentPage}&limit=${pageSize}`;
+    ? `/api/folders/${folderId}?page=${effectivePage}&limit=${effectiveLimit}`
+    : `/api/folders?page=${effectivePage}&limit=${effectiveLimit}`;
 
   try {
     const res = await apiFetch(url);
@@ -104,40 +118,57 @@ async function loadFolder(folderId) {
     renderBreadcrumbs(data.breadcrumbs);
 
     const grid = document.getElementById('contentGrid');
-    grid.innerHTML = '';
+    if (!append) grid.innerHTML = '';
 
-    // Render folders
-    for (const folder of data.folders) {
-      grid.appendChild(createFolderCard(folder));
+    // Render folders (only on first load)
+    if (!append) {
+      for (const folder of data.folders) {
+        grid.appendChild(createFolderCard(folder));
+      }
     }
 
     // Render files
-    currentFiles = data.files;
+    if (append) {
+      currentFiles = currentFiles.concat(data.files);
+    } else {
+      currentFiles = data.files;
+    }
     for (const file of data.files) {
       grid.appendChild(createFileCard(file));
     }
 
-    if (data.folders.length === 0 && data.files.length === 0) {
+    if (!append && data.folders.length === 0 && data.files.length === 0) {
       grid.innerHTML = '<div class="empty-state"><div class="empty-icon">&#128193;</div><p>This folder is empty</p></div>';
     }
 
-    renderPagination(data.pagination, 'pagination');
+    if (isInfinite) {
+      document.getElementById('pagination').style.display = 'none';
+      infiniteHasMore = effectivePage < data.pagination.totalPages;
+      infiniteLoading = false;
+    } else {
+      renderPagination(data.pagination, 'pagination');
+    }
   } catch (err) {
     console.error('Load folder error:', err);
+    infiniteLoading = false;
   }
-  showLoading(false);
+  if (!append) showLoading(false);
 }
 
 // Load all files
-async function loadAllFiles() {
-  showLoading(true);
+async function loadAllFiles(append) {
+  if (!append) showLoading(true);
   await loadFavoritesCheck();
 
   const rootRes = await apiFetch('/api/folders');
   if (!rootRes) return;
   const rootData = await rootRes.json();
 
-  const url = `/api/folders/${rootData.id}/all?page=${currentPage}&limit=${pageSize}`;
+  const isInfinite = pageSize === 0;
+  const effectiveLimit = isInfinite ? SCROLL_BATCH : pageSize;
+  const effectivePage = isInfinite ? infinitePage : currentPage;
+
+  const url = `/api/folders/${rootData.id}/all?page=${effectivePage}&limit=${effectiveLimit}`;
   try {
     const res = await apiFetch(url);
     if (!res) return;
@@ -146,23 +177,33 @@ async function loadAllFiles() {
     renderBreadcrumbs([{ id: null, name: 'All Files' }]);
 
     const grid = document.getElementById('contentGrid');
-    grid.innerHTML = '';
+    if (!append) grid.innerHTML = '';
 
-    currentFiles = data.files;
+    if (append) {
+      currentFiles = currentFiles.concat(data.files);
+    } else {
+      currentFiles = data.files;
+    }
     for (const file of data.files) {
-      const card = createFileCard(file, true);
-      grid.appendChild(card);
+      grid.appendChild(createFileCard(file, true));
     }
 
-    if (data.files.length === 0) {
+    if (!append && data.files.length === 0) {
       grid.innerHTML = '<div class="empty-state"><div class="empty-icon">&#128444;</div><p>No files found</p></div>';
     }
 
-    renderPagination(data.pagination, 'pagination');
+    if (isInfinite) {
+      document.getElementById('pagination').style.display = 'none';
+      infiniteHasMore = effectivePage < data.pagination.totalPages;
+      infiniteLoading = false;
+    } else {
+      renderPagination(data.pagination, 'pagination');
+    }
   } catch (err) {
     console.error('Load all error:', err);
+    infiniteLoading = false;
   }
-  showLoading(false);
+  if (!append) showLoading(false);
 }
 
 function renderBreadcrumbs(crumbs) {
@@ -323,6 +364,21 @@ function navigateToFolder(folderId) {
   currentFolderId = folderId;
   loadFolder(folderId);
 }
+
+// Infinite scroll listener
+window.addEventListener('scroll', () => {
+  if (pageSize !== 0 || !infiniteHasMore || infiniteLoading) return;
+  const scrollBottom = window.innerHeight + window.scrollY;
+  if (scrollBottom >= document.body.offsetHeight - 300) {
+    infiniteLoading = true;
+    infinitePage++;
+    switch (currentView) {
+      case 'folders': loadFolder(currentFolderId, true); break;
+      case 'all': loadAllFiles(true); break;
+      case 'favorites': loadFavorites(true); break;
+    }
+  }
+});
 
 // Init: load root folder
 loadFolder(null);

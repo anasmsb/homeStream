@@ -1,8 +1,24 @@
 # HomeStream
 
-A self-hosted LAN media server. Drop folders into a directory and instantly browse, view, and stream your photos and videos from any device on your network.
+**Your photos and videos, on your network, under your control.**
 
-`media server` `home media server` `lan media server` `self-hosted` `photo gallery` `video streaming` `media browser` `media drop` `lan vault` `stream nest` `media gate` `home stream` `nas media` `local media server` `private media server` `photo viewer` `video player` `media manager` `file browser` `image gallery` `self-hosted gallery` `lan streaming` `media sharing` `network media` `family media server`
+HomeStream is a self-hosted media server designed for homes, families, and small teams. Drop your folders into a directory and instantly browse, view, and stream everything from any device on your local network — phones, tablets, laptops, smart TVs.
+
+No cloud subscriptions. No upload limits. No third-party access to your memories. Just your files, served securely over your own LAN.
+
+`media server` `home media server` `lan media server` `self-hosted` `photo gallery` `video streaming` `media browser` `media drop` `lan vault` `stream nest` `media gate` `home stream` `nas media` `local media server` `private media server` `photo viewer` `video player` `media manager` `file browser` `image gallery` `self-hosted gallery` `lan streaming` `media sharing` `network media` `family media server` `photo backup` `video backup` `family photos` `memory vault` `home gallery` `private cloud` `media organizer` `self hosted photo gallery` `self hosted video server`
+
+---
+
+### Who is this for?
+
+- **Families** who want a private place to store and share vacation photos, birthday videos, and everyday memories — accessible from every device at home
+- **Photographers & videographers** who need a quick way to preview and organize large media libraries on their local network
+- **Home lab enthusiasts** looking for a lightweight, no-nonsense media server without the bloat of Plex or Jellyfin
+- **Small teams & studios** who want to share project assets internally without uploading to the cloud
+- **Anyone** who just wants to plug in a hard drive, run one command, and have a beautiful media browser
+
+---
 
 ## Features
 
@@ -17,14 +33,37 @@ A self-hosted LAN media server. Drop folders into a directory and instantly brow
 - **Soft Delete** — Admin can delete files (moved to trash, auto-purged after configurable days)
 - **Thumbnails** — Auto-generated thumbnails for images (Sharp) and videos (FFmpeg)
 - **Video Previews** — Animated preview clips generated on hover
-- **Pagination** — Configurable page sizes (50 / 100 / All)
+- **Pagination** — 50 / 100 per page, or infinite scroll
 - **Secure** — HTTPS with self-signed certs, JWT auth, opaque file IDs (real paths never exposed)
 - **Live Reload** — File system changes detected in real-time via Chokidar
 - **Zero Build Step** — Vanilla HTML/CSS/JS frontend, no bundler needed
+- **Dark Theme** — Easy on the eyes, responsive across all screen sizes
 
 ## Screenshots
 
-> _Add screenshots here_
+### Login
+![Login](screenshots/login.png)
+
+### Folder Browse
+![Browse](screenshots/browse.png)
+
+### Image Viewer
+![Viewer](screenshots/viewer.png)
+
+### Video Player
+![Player](screenshots/player.png)
+
+### Search
+![Search](screenshots/search.png)
+
+### Admin Panel — Users
+![Admin Users](screenshots/admin-users.png)
+
+### Admin Panel — Permissions
+![Admin Permissions](screenshots/admin-permissions.png)
+
+### Mobile View
+![Mobile](screenshots/mobile.png)
 
 ## Prerequisites
 
@@ -50,6 +89,8 @@ npm start
 ```
 
 Open `https://localhost:3000` in your browser (accept the self-signed certificate).
+
+To access from other devices on your network, use your machine's local IP: `https://192.168.x.x:3000`
 
 ## Configuration
 
@@ -118,6 +159,23 @@ Access at `https://localhost:3000/admin` (admin users only):
 | `Space` | Play / Pause |
 | `Escape` | Close player |
 
+## Security Notice
+
+> **HomeStream is designed for local network (LAN) use only. Exposing it to the public internet is at your own risk.**
+
+If you still plan to make it publicly accessible, do so at your own risk.
+
+| Risk | Details | Recommendation |
+|---|---|---|
+| **No rate limiting** | Login and API endpoints have no request throttling. An attacker can brute-force passwords. | Add a reverse proxy (Nginx, Caddy) with rate limiting, or use a module like `express-rate-limit`. |
+| **Self-signed certificates** | Browsers will show warnings. Not trusted by external clients. | Use a proper TLS certificate from Let's Encrypt (free) behind a reverse proxy. |
+| **No file type validation on upload** | Any file type can be uploaded. A malicious user with upload access could upload harmful files. | Restrict uploads to known media MIME types if exposed publicly. |
+| **Token in URL** | Media streaming passes JWT tokens as query parameters, which can appear in server logs and browser history. | Acceptable on LAN; on public internet, use cookie-based auth or signed URLs with short expiry. |
+| **No CSP headers** | Content Security Policy is disabled to allow inline styles. Increases XSS risk. | Enable CSP with a strict policy if facing the internet. |
+| **No account lockout** | Failed login attempts are not tracked. No lockout after repeated failures. | Implement account lockout or CAPTCHA for public-facing deployments. |
+
+**Our recommendation:** If you need external access, put HomeStream behind a **VPN** (WireGuard, Tailscale) rather than exposing it directly. This gives you remote access with LAN-level security — no extra hardening needed.
+
 ## Tech Stack
 
 - **Backend:** Node.js, Express, PostgreSQL
@@ -158,6 +216,15 @@ Access at `https://localhost:3000/admin` (admin users only):
     ├── css/style.css   # Styles
     └── js/             # Frontend modules
 ```
+
+### Favorites
+![Favorites](screenshots/favorites.png)
+
+### Upload
+![Upload](screenshots/upload.png)
+
+### Trash Management
+![Trash](screenshots/trash.png)
 
 ## License
 
