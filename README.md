@@ -41,7 +41,11 @@ No cloud subscriptions. No upload limits. No third-party access to your memories
 
 ## Screenshots
 
-> Screenshots coming soon. See the `screenshots/` folder after setup.
+![Login](screenshots/login.png)
+
+![Main Browser](screenshots/main.png)
+
+![Video Player](screenshots/player.png)
 
 ## Prerequisites
 
